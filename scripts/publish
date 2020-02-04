@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+docker build --tag 'adamvig/gandi-dynamic-dns' .
+docker push adamvig/gandi-dynamic-dns:latest

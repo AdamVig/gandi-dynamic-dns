@@ -1,0 +1,63 @@
+#!/bin/sh
+
+: "${GANDI_API_KEY:?must set environment variable}"
+: "${DOMAIN:?must set environment variable}"
+: "${RECORD_NAME:?must set environment variable}"
+
+api_key="$GANDI_API_KEY"
+domain="$DOMAIN"
+record_name="$RECORD_NAME"
+
+previous_ip=
+
+update_ip() {
+  if ! ip="$(curl --fail --silent https://icanhazip.com)"; then
+    echo 'error: failed to get external IP address'
+    return 1
+  fi
+
+  if [ "$ip" = "$previous_ip" ]; then
+    echo "skipping update because external IP '$ip' has not changed"
+    return
+  fi
+
+  request_data=$(cat <<EOF
+{
+    "rrset_values": ["$ip"]
+}
+EOF
+)
+
+  if ! curl --fail --silent \
+       --request PUT \
+       --header 'Content-Type: application/json' \
+       --header "X-Api-Key:$api_key" \
+       --data "$request_data" \
+       https://dns.api.gandi.net/api/v5/domains/"$domain"/records/"$record_name"/A; then
+    echo 'error: failed to update IP address'
+    return 1
+  fi
+
+  # Add newline after cURL output
+  echo
+
+  previous_ip="$ip"
+}
+
+max_retries=10
+
+while true; do
+  if ! update_ip; then
+    retries=$((retries + 1))
+    echo "warning: failed to update IP, $((max_retries-retries)) retries remaining"
+
+    if [ $retries = $max_retries ]; then
+      echo 'error: IP update failed ten times, exiting'
+      exit 1
+    fi
+  fi
+
+  retries=0
+
+  sleep 5m
+done
