@@ -2,5 +2,8 @@
 
 set -euo pipefail
 
-docker build --tag 'adamvig/gandi-dynamic-dns' .
+docker build --tag adamvig/gandi-dynamic-dns:latest .
 docker push adamvig/gandi-dynamic-dns:latest
+
+docker build --pull --platform linux/arm --tag adamvig/gandi-dynamic-dns:arm .
+docker push adamvig/gandi-dynamic-dns:arm
