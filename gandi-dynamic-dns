@@ -7,7 +7,7 @@
 api_key="$GANDI_API_KEY"
 domain="$DOMAIN"
 record_name="$RECORD_NAME"
-update_interval="${UPDATE_INTERVAL:-5m}"
+update_interval="${UPDATE_INTERVAL:-1h}"
 
 echo "updating domain '$domain' record '$record_name' every '$update_interval'"
 

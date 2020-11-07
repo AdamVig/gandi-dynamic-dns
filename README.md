@@ -2,7 +2,7 @@
 
 Script and Docker container to update the IP address of a [gandi.net](https://www.gandi.net/) domain.
 
-- updates every five minutes
+- updates every hour (configurable)
 - gets external IP address from [icanhazip.com](https://major.io/icanhazip-com-faq/)
 - automatically skips update if external IP has not changed
 - only 3.35 MB
@@ -15,7 +15,7 @@ Script and Docker container to update the IP address of a [gandi.net](https://ww
   - could be the name of the subdomain, for example, `foo` to update the IP for `foo.example.com`
   - could be `@` to update the IP for the domain itself
 - `UPDATE_INTERVAL`: time interval between updates (optional)
-  - defaults to `5m` (five minutes)
+  - defaults to `1h` (one hour)
   - must be in [the format used by GNU `sleep`](https://www.gnu.org/software/coreutils/manual/html_node/sleep-invocation.html#sleep-invocation)
 
 ## Script
