@@ -9,6 +9,8 @@ domain="$DOMAIN"
 record_name="$RECORD_NAME"
 update_interval="${UPDATE_INTERVAL:-5m}"
 
+echo "updating domain '$domain' record '$record_name' every '$update_interval'"
+
 previous_ip=
 
 update_ip() {
