@@ -14,6 +14,9 @@ Script and Docker container to update the IP address of a [gandi.net](https://ww
 - `RECORD_NAME`: name of the DNS record to update
   - could be the name of the subdomain, for example, `foo` to update the IP for `foo.example.com`
   - could be `@` to update the IP for the domain itself
+- `UPDATE_INTERVAL`: time interval between updates (optional)
+  - defaults to `5m` (five minutes)
+  - must be in [the format used by GNU `sleep`](https://www.gnu.org/software/coreutils/manual/html_node/sleep-invocation.html#sleep-invocation)
 
 ## Script
 

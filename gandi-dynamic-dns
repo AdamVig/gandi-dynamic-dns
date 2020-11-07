@@ -7,6 +7,7 @@
 api_key="$GANDI_API_KEY"
 domain="$DOMAIN"
 record_name="$RECORD_NAME"
+update_interval="${UPDATE_INTERVAL:-5m}"
 
 previous_ip=
 
@@ -59,5 +60,5 @@ while true; do
 
   retries=0
 
-  sleep 5m
+  sleep "$update_interval"
 done
