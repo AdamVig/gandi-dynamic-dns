@@ -17,6 +17,8 @@ Script and Docker container to update the IP address of a [gandi.net](https://ww
 - `UPDATE_INTERVAL`: time interval between updates (optional)
   - defaults to `1h` (one hour)
   - must be in [the format used by GNU `sleep`](https://www.gnu.org/software/coreutils/manual/html_node/sleep-invocation.html#sleep-invocation)
+- `TIME_TO_LIVE`: DNS TTL, in seconds, for the subdomain (optional)
+  - defaults to `3600` (one hour)
 
 ## Script
 

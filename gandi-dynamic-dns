@@ -8,13 +8,14 @@ api_key="$GANDI_API_KEY"
 domain="$DOMAIN"
 record_name="$RECORD_NAME"
 update_interval="${UPDATE_INTERVAL:-1h}"
+timetolive="${TIME_TO_LIVE:-3600}"
 
 echo "updating domain '$domain' record '$record_name' every '$update_interval'"
 
 previous_ip=
 
 update_ip() {
-  if ! ip="$(curl --fail --silent https://icanhazip.com)"; then
+  if ! ip="$(curl --fail --silent https://ipv4.icanhazip.com)"; then
     echo 'error: failed to get external IP address'
     return 1
   fi
@@ -26,7 +27,8 @@ update_ip() {
 
   request_data=$(cat <<EOF
 {
-    "rrset_values": ["$ip"]
+    "rrset_values": ["$ip"],
+    "rrset_ttl": $timetolive
 }
 EOF
 )
