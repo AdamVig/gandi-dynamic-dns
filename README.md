@@ -5,7 +5,7 @@ Script and Docker container to update the IP address of a [gandi.net](https://ww
 - updates every hour (configurable)
 - gets external IP address from [icanhazip.com](https://major.io/icanhazip-com-faq/)
 - automatically skips update if external IP has not changed
-- only 3.35 MB
+- only 3.68 MB (compressed)
 
 # Usage
 ## Environment Variables
