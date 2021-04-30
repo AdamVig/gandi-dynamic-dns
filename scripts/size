@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v numfmt > /dev/null; then
+  echo 'error: numfmt must be installed'
+  exit 1
+fi
+
+docker image inspect adamvig/gandi-dynamic-dns --format '{{ .Size }}' | \
+  numfmt --to iec
