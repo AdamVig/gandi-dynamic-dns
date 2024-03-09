@@ -2,29 +2,42 @@
 
 : "${GANDI_API_KEY:?must set environment variable}"
 : "${DOMAIN:?must set environment variable}"
-: "${RECORD_NAME:?must set environment variable}"
+
+# Fallback for previous variable name
+if [ -z "$RECORD_NAMES" ] && [ -n "$RECORD_NAME" ]; then
+  RECORD_NAMES="$RECORD_NAME"
+elif [ -z "$RECORD_NAMES" ] && [ -z "$RECORD_NAME" ]; then
+  echo 'RECORD_NAMES: must set environment variable'
+  exit 1
+fi
 
 api_key="$GANDI_API_KEY"
 domain="$DOMAIN"
-record_name="$RECORD_NAME"
+record_names="$RECORD_NAMES"
 update_interval="${UPDATE_INTERVAL:-1h}"
 time_to_live="${TIME_TO_LIVE:-3600}"
 
-echo "updating domain '$domain' record '$record_name' every '$update_interval'"
+echo "updating domain '$domain' every '$update_interval' for records:
+$(echo "$record_names" | tr ',' '\n')
+"
 
 previous_ip=
-
-update_ip() {
+get_ip() {
   if ! ip="$(curl --fail --silent https://ipv4.icanhazip.com)"; then
-    echo 'error: failed to get external IP address'
+    echo >&2 'error: failed to get external IP address'
     return 1
   fi
 
-  if [ "$ip" = "$previous_ip" ]; then
-    echo "skipping update because external IP '$ip' has not changed"
+  echo "$ip"
+}
+
+update_ip() {
+  record_name="${1-}"
+  if [ -z "$record_name" ]; then
+    echo >&2 'warning: skipping empty record name'
     return
   fi
-
+  
   request_data=$(cat <<EOF
 {
     "rrset_values": ["$ip"],
@@ -39,30 +52,54 @@ EOF
        --header "X-Api-Key:$api_key" \
        --data "$request_data" \
        https://dns.api.gandi.net/api/v5/domains/"$domain"/records/"$record_name"/A; then
-    echo 'error: failed to update IP address'
+    echo >&2 "error: failed to update IP address for record \"$record_name\""
     return 1
   fi
 
   # Add newline after cURL output
   echo
+}
 
-  previous_ip="$ip"
+update_ip_for_all_records() {
+  echo "$record_names" | tr ',' '\n' | while read -r record_name; do
+    update_ip "$record_name"
+  done
 }
 
 max_retries=10
+retries=0
 
 while true; do
-  if ! update_ip; then
+  if ! ip="$(get_ip)"; then
     retries=$((retries + 1))
-    echo "warning: failed to update IP, $((max_retries-retries)) retries remaining"
+    echo "warning: failed to get IP, $((max_retries-retries)) retries remaining"
 
     if [ $retries = $max_retries ]; then
-      echo 'error: IP update failed ten times, exiting'
+      echo 'error: failed ten times, exiting'
       exit 1
     fi
   fi
 
-  retries=0
+  if [ "$ip" = "$previous_ip" ]; then
+    echo >&2 "skipping update because external IP '$ip' has not changed"
+  else
+    # IP has changed: perform the update
+
+    if ! update_ip_for_all_records; then
+      retries=$((retries + 1))
+      echo "warning: failed to update IP, $((max_retries-retries)) retries remaining"
+
+      if [ $retries = $max_retries ]; then
+        echo 'error: failed ten times, exiting'
+        exit 1
+      fi
+    else
+      # Success: reset retries and store previous IP
+
+      retries=0
+      previous_ip="$ip"
+    fi
+  fi
 
   sleep "$update_interval"
 done
